@@ -6,7 +6,7 @@ unsigned WINAPI SendMsg(void * arg);
 unsigned WINAPI RecvMsg(void * arg);
 void ErrorHandling(const char *msg);
 bool recvEnd = false;
-HANDLE gHSndThread;
+HANDLE gHSndThread,gHRcvThread;
 char name[256] = "[DEFAULT]";
 char msg[256];
 
@@ -40,6 +40,7 @@ int main(int argc, char * argv[])
 	hSndThread = (HANDLE)_beginthreadex(NULL, 0, SendMsg, (void*)&hSock, 0, NULL);
 	hRcvThread = (HANDLE)_beginthreadex(NULL, 0, RecvMsg, (void*)&hSock, 0, NULL);
 	gHSndThread = hSndThread;
+	gHRcvThread = hRcvThread;
 	WaitForSingleObject(hSndThread, INFINITE);
 	WaitForSingleObject(hRcvThread, INFINITE);
 	cout << "Terminated By Server";
@@ -57,7 +58,7 @@ unsigned WINAPI SendMsg(void * arg) {
 		
 		if (!strcmp(msg, "q\n") || !strcmp(msg, "Q\n")) {
 			closesocket(hSock);
-
+			TerminateThread(gHRcvThread, 0);
 			break;
 		}
 		sprintf_s(nameMsg, "%s : %s", name, msg);
